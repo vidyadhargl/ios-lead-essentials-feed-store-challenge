@@ -31,10 +31,7 @@ public final class CoreDataFeedStore: FeedStore {
 	public func retrieve(completion: @escaping RetrievalCompletion) {
 		perform { context in
 			do {
-				let fetchRequest = NSFetchRequest<ManagedCache>(entityName: ManagedCache.entity().name!)
-				fetchRequest.returnsObjectsAsFaults = false
-
-				if let cache = try context.fetch(fetchRequest).first {
+				if let cache = try ManagedCache.find(in: context) {
 					let feed = cache.feed
 						.compactMap { $0 as? ManagedFeedImage }
 						.map { LocalFeedImage(id: $0.id, description: $0.imageDescription, location: $0.location, url: $0.url) }
@@ -52,9 +49,7 @@ public final class CoreDataFeedStore: FeedStore {
 	public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
 		perform { context in
 			do {
-				let fetchRequest = NSFetchRequest<ManagedCache>(entityName: ManagedCache.entity().name!)
-				fetchRequest.returnsObjectsAsFaults = false
-				if let cache = try context.fetch(fetchRequest).first {
+				if let cache = try ManagedCache.find(in: context) {
 					context.delete(cache)
 				}
 
@@ -83,9 +78,7 @@ public final class CoreDataFeedStore: FeedStore {
 	public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
 		perform { context in
 			do {
-				let request = NSFetchRequest<ManagedCache>(entityName: ManagedCache.entity().name!)
-				request.returnsObjectsAsFaults = false
-				if let cache = try context.fetch(request).first {
+				if let cache = try ManagedCache.find(in: context) {
 					context.delete(cache)
 					try context.save()
 				}

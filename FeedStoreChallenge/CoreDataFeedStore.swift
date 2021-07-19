@@ -32,10 +32,7 @@ public final class CoreDataFeedStore: FeedStore {
 		perform { context in
 			do {
 				if let cache = try ManagedCache.find(in: context) {
-					let feed = cache.feed
-						.compactMap { $0 as? ManagedFeedImage }
-						.map { LocalFeedImage(id: $0.id, description: $0.imageDescription, location: $0.location, url: $0.url) }
-					completion(.found(feed: feed, timestamp: cache.timestamp))
+					completion(.found(feed: cache.localFeed, timestamp: cache.timestamp))
 				} else {
 					completion(.empty)
 				}
@@ -49,21 +46,9 @@ public final class CoreDataFeedStore: FeedStore {
 	public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
 		perform { context in
 			do {
-				if let cache = try ManagedCache.find(in: context) {
-					context.delete(cache)
-				}
-
-				let newCache = ManagedCache(context: context)
-				newCache.timestamp = timestamp
-				newCache.feed = NSOrderedSet(array: feed.map { feed in
-					let managedFeedImage = ManagedFeedImage(context: context)
-					managedFeedImage.id = feed.id
-					managedFeedImage.imageDescription = feed.description
-					managedFeedImage.location = feed.location
-					managedFeedImage.url = feed.url
-					//managedFeedImage.cache = newCache
-					return managedFeedImage
-				})
+				let cache = try ManagedCache.newUniqueItem(in: context)
+				cache.timestamp = timestamp
+				cache.feed = ManagedFeedImage.images(with: feed, in: context)
 
 				try context.save()
 				completion(nil)
@@ -78,10 +63,8 @@ public final class CoreDataFeedStore: FeedStore {
 	public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
 		perform { context in
 			do {
-				if let cache = try ManagedCache.find(in: context) {
-					context.delete(cache)
-					try context.save()
-				}
+				try ManagedCache.find(in: context).map(context.delete)
+				try context.save()
 				completion(nil)
 			} catch {
 				context.rollback()

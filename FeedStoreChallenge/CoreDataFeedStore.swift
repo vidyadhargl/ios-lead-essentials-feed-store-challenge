@@ -92,6 +92,7 @@ public final class CoreDataFeedStore: FeedStore {
 				request.returnsObjectsAsFaults = false
 				if let cache = try context.fetch(request).first {
 					context.delete(cache)
+					try context.save()
 				}
 				completion(nil)
 			} catch {

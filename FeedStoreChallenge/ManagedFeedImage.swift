@@ -9,10 +9,11 @@
 import CoreData
 
 @objc(ManagedFeedImage)
-internal class ManagedFeedImage: NSManagedObject {
-	@NSManaged internal var id: UUID
-	@NSManaged internal var imageDescription: String?
-	@NSManaged internal var location: String?
-	@NSManaged internal var url: URL
-	@NSManaged internal var cache: ManagedCache
+
+class ManagedFeedImage: NSManagedObject {
+	@NSManaged var id: UUID
+	@NSManaged var imageDescription: String?
+	@NSManaged var location: String?
+	@NSManaged var url: URL
+	@NSManaged var cache: ManagedCache
 }
